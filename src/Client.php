@@ -7,6 +7,7 @@ use GuzzleHttp\Psr7;
 use GuzzleHttp\Psr7\StreamWrapper;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\{ClientException, RequestException};
+use Illuminate\Support\Str;
 
 class Client
 {
@@ -71,32 +72,32 @@ class Client
 	public function createFolder($path) : bool
 	{
 		$path = $this->normalizePath($path);
-
+		
 		// Check if the path contains folders we dont want to create
-		if (str_contains($path, $this->folderPathExcludeList)) {
+		if (Str::contains($path, $this->folderPathExcludeList)) {
 			return true;
 		}
-
+		
 		$this->folderPath = '/sites/'.$this->siteName.'/Shared%20Documents';
-
+		
 		$requestUrl = $this->siteUrl.'/sites/'.$this->siteName.'/_api/Web/folders';
-
+		
 		$this->requestHeaders['Content-Type'] = 'application/json;odata=verbose';
-
+		
 		$folderAttributes = [
 			'__metadata' => [
 				'type' => 'SP.Folder',
 			],
 			'ServerRelativeUrl' => $this->folderPath.$path,
 		];
-
+		
 		$options = [
 			'headers' => $this->requestHeaders,
 			'body' => json_encode($folderAttributes)
 		];
-
+		
 		$response = $this->send('POST', $requestUrl, $options);
-
+		
 		return $response->getStatusCode() === 200 ? true : false;
 	}
 
@@ -109,24 +110,24 @@ class Client
 	public function delete(string $path) : bool
 	{
 		$path = $this->normalizePath($path);
-
+		
 		// Check if the path contains folders we dont want to delete
-		if (str_contains($path, $this->folderPathExcludeList)) {
+		if (Str::contains($path, $this->folderPathExcludeList)) {
 			return true;
 		}
-
+		
 		$requestUrl = $this->siteUrl.'/sites/'.$this->siteName.'/_api/Web/GetFolderByServerRelativeUrl(\''.$this->folderPath.$path.'\')';
-
+		
 		$this->requestHeaders['IF-MATCH'] = 'etag';
-
+			
 		$this->requestHeaders['X-HTTP-Method'] = 'DELETE';
-
+				
 		$options = [
 			'headers' => $this->requestHeaders,
 		];
-
+			
 		$response = $this->send('POST', $requestUrl, $options);
-
+		
 		return $response->getStatusCode() === 200 ? true : false;
 	}
 
@@ -295,17 +296,17 @@ class Client
 	 */
 	public function download(string $path)
 	{
-		// To get specific file data pass in the value you want e.g. /Name
-		$requestUrl = $this->siteUrl.'/sites/'.$this->siteName.'/_api/Web/GetFileByServerRelativeUrl(\''.$this->folderPath.$path.'\')';
-
+		// To get specific file data pass in the value you want e.g. /Name 
+		$requestUrl = $this->siteUrl.'/sites/'.$this->siteName.'/_api/Web/GetFileByServerRelativeUrl(\''.$this->folderPath.$path.'\')/$value';
+		
 		$options = [
 			'headers' => $this->requestHeaders,
 		];
-
+		
 		$response = $this->send('GET', $requestUrl, $options);
-
+		
 		return StreamWrapper::getResource($response->getBody());
-	}
+    }
 
 	protected function normalizePath(string $path) : string
 	{
