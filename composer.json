@@ -1,5 +1,5 @@
 {
-	"name": "delaneymethod/sharepoint-api",
+	"name": "nholliday/sharepoint-api",
 	"description": "A minimal implementation of Sharepoint 2013 REST API",
 	"keywords": [
 		"delaneymethod",
